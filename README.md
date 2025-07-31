@@ -23,7 +23,7 @@ This repository contains the code and methodology for a computer vision system d
     pip install -r requirements.txt
     ```
 5.  Download the necessary YOLO weights (from this repo or other customs models) and place them in the `/weights/` directory.
-6.  Place input videos in `/data/footage/`.
+6.  Create a data folder /data (follow the project structure) and place input videos in `/data/footage/`.
 
 ## How to Run
 
