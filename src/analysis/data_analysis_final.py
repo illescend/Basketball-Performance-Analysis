@@ -293,7 +293,6 @@ def plot_master_trajectories(all_mono_trajectories, all_gt_trajectories, output_
     fig.write_html(output_path)
     print(f"Master trajectory plot saved to {output_path}")
 
-
 def main():
     all_batches = sorted([d for d in os.listdir(EXPERIMENT_DATA_ROOT) if
                           d.startswith("batch") and os.path.isdir(os.path.join(EXPERIMENT_DATA_ROOT, d))])
