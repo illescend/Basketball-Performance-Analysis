@@ -25,10 +25,71 @@ This repository contains the code and methodology for a computer vision system d
 5.  Download the necessary YOLO weights (from this repo or other customs models) and place them in the `/weights/` directory.
 6.  Create a data folder /data (follow the project structure) and place input videos in `/data/footage/`.
 
-## How to Run
 
-### 1. Run the Main Analysis Pipeline
-This script processes the videos to generate trajectories and fitted parameters.
+## Analysis Workflow & How to Run
+
+This project involves a multi-step workflow to go from raw video and motion capture data to final kinematic analysis. The scripts should be run in the following sequence.
+
+### Step 0: Pre-processing and Calibration Data Collection
+
+Before running the automated pipelines, some manual data extraction is required for each new video batch.
+
+#### a) Capturing a Calibration Frame
+The World Coordinate System (WCS) is established by mapping known 3D real-world points to their 2D pixel locations in a video frame.
+
+1.  **Run `src/utils/capture_frame.py`. This util file opens a video file and allow you to step through it frame by frame.
+2.  Navigate to a clear frame in your video (e.g., `batch1.mp4`) where all your physical calibration markers are visible and not obscured.
+3.  Save this frame as an image (e.g., `batch1_calibration_frame.png`) in the script.
+4.  Open this image in an editor like Paint, GIMP, or use a simple Python script with `cv2.setMouseCallback` to find the exact `(x, y)` pixel coordinates for each of your known 3D world points.
+5.  **Record these pixel coordinates meticulously.** You will need them for the `image_points_specific` list in `batch_pipeline_tracking.py`.
+
+#### b) Finding Synchronization Points
+The GoPro and OptiTrack systems record on independent timelines and must be synchronized. This is done by finding the exact moment of a common physical event in both recordings. For this project, a ball drop is used.
+
+1.  **Find the GoPro Sync Frame:**
+    *   Open your video file (e.g., `batch1.mp4`) in a video player that shows frame numbers (like VLC or a simple OpenCV script).
+    *   Carefully scrub through the video to find the **very first frame** where the dropped ball makes contact with the ground.
+    *   Record this **frame number**.
+2.  **Find the OptiTrack Sync Time:**
+    *   Open the corresponding raw OptiTrack CSV file.
+    *   Look at the time series data for the ball's vertical position (e.g., `Ball_Y`).
+    *   Find the timestamp corresponding to the **first local minimum** of the ball's height during the drop event. This is the precise time of impact.
+    *   Record this **timestamp (in seconds)**.
+3.  **Update the Configuration:**
+    *   Open `src/data_processing/load_and_extract_gt.py`.
+    *   Update the `batch_sync_data` dictionary with the recorded values for the corresponding batch number. For example:
+        ```python
+        batch_sync_data = {
+            1: {'gopro_frame': 567, 'optitrack_time': 5.416667},
+            2: {'gopro_frame': 528, 'optitrack_time': 4.970833},
+            # ... and so on for all batches
+        }
+        ```
+
+### Step 1: Place Raw Data
+After completing Step 0, ensure your raw data is correctly placed:
+
+1.  **Video Files:** Place all GoPro videos (e.g., `batch1.mp4`) inside the `/data/footage/` directory.
+
+### Step 2: Configure the Monocular Pipeline
+Open `src/main_pipeline/batch_pipeline_tracking.py` and configure the following:
+
+1.  **`BATCH_CONFIGS` List:** For each video batch, create a dictionary entry.
+    *   Use the pixel coordinates you recorded in Step 0a for the `image_points_specific` list.
+    *   Ensure the `world_points_specific` list correctly corresponds to the image points.
+2.  **`TARGET_BATCH_NUMBER`:**
+    *   To process **only one batch**, set this to the batch number (e.g., `1`).
+    *   To process **all batches**, set this to `None`.
+
+### Step 3: Run the Main Monocular Pipeline
+This script is the core of the monocular system. It processes the videos to find shots, reconstruct their 3D trajectories, and estimate release parameters.
+
+**To Run:**
+```bash
+python -m src.main_pipeline.batch_pipeline_tracking
+
+**OptiTrack CSV Files:** Place the corresponding raw OptiTrack CSV export files inside their respective batch folders (e.g., `/data/experiment_data/batch1/batch_shots_10_1.csv`).
+
 
 ### File/Directory Descriptions and Key Parameters
 
