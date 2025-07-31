@@ -84,10 +84,6 @@ Open `src/main_pipeline/batch_pipeline_tracking.py` and configure the following:
 ### Step 3: Run the Main Monocular Pipeline
 This script is the core of the monocular system. It processes the videos to find shots, reconstruct their 3D trajectories, and estimate release parameters.
 
-**To Run:**
-```bash
-python -m src.main_pipeline.batch_pipeline_tracking
-
 **OptiTrack CSV Files:** Place the corresponding raw OptiTrack CSV export files inside their respective batch folders (e.g., `/data/experiment_data/batch1/batch_shots_10_1.csv`).
 
 
